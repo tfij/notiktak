@@ -9,8 +9,8 @@ import spock.lang.Specification
 
 @AutoConfigureDataMongo
 @SpringBootTest(
-        classes = [NotiktakApplication],
-//        properties = "application.environment=integration",
+        classes = [NotiktakApplication, EventStoreTestConfig],
+        properties = "spring.profiles.active=integration",
         webEnvironment = WebEnvironment.RANDOM_PORT)
 abstract class BaseIntegrationSpec extends Specification {
 
