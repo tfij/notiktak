@@ -4,9 +4,7 @@ import integration.fixture.BaseIntegrationSpec
 import integration.fixture.NotiktakClient
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import spock.lang.Ignore
 
-@Ignore // require run axonserver in test spring context
 class UserIntegrationSpec extends BaseIntegrationSpec implements NotiktakClient {
 
     def "Should create user"() {
@@ -27,7 +25,9 @@ class UserIntegrationSpec extends BaseIntegrationSpec implements NotiktakClient 
 
         then: "response is 200 and contains user data"
         response.statusCode == HttpStatus.OK
-        response.body == [:]
+        response.body.userId == createdUserId
+        response.body.userEmail == "jon@example.com"
+        response.body.confirmationToken
     }
 
     private static boolean isValidUUID(String uuidCandidate) {
