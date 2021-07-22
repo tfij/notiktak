@@ -34,11 +34,11 @@ class RegisterUserOnCourseIntegrationSpec extends BaseIntegrationSpec {
         String courseId = commandGateway.send(new CreateCourseCommand("TDD with Axon", 5, courseCost)).get()
 
         when: "I register student on course"
-        sleep(2000)
+        sleep(200)
         commandGateway.send(new RegisterOnCourseCommand(studentId, courseId)).get()
 
         then: "the student is registered"
-        sleep(2000)
+        sleep(200)
         StudentView studentView = queryGateway.query(new FindStudentQuery(studentId), ResponseTypes.instanceOf(StudentView)).get()
         studentView.onCourses == [
                 new StudentCourseView(courseId, "TDD with Axon", courseCost)
@@ -58,7 +58,33 @@ class RegisterUserOnCourseIntegrationSpec extends BaseIntegrationSpec {
     }
 
     def "Should not register user on course when student hasn't enough credit and the course participant limit has not been reached"() {
+        given: "the sample student wit 10 credit granted"
+        int initStudentCredit = 10
+        String studentId = commandGateway.send(new CreateUserCommand("karl.anderson@example.com", new Role.Student(initStudentCredit))).get()
 
+        and: "course for 5 students and cost of 20 for each"
+        int courseCost = 20
+        int participantLimit = 5
+        String courseId = commandGateway.send(new CreateCourseCommand("TDD with Axon", participantLimit, courseCost)).get()
+
+        when: "I register student on course"
+        sleep(200)
+        commandGateway.send(new RegisterOnCourseCommand(studentId, courseId)).get()
+
+        then: "the student is not registered"
+        sleep(200)
+        StudentView studentView = queryGateway.query(new FindStudentQuery(studentId), ResponseTypes.instanceOf(StudentView)).get()
+        studentView.onCourses.isEmpty()
+
+        and: "student credit is not changed"
+        studentView.credit == initStudentCredit
+
+        and: "all vacancies are available"
+        CourseView courseView = queryGateway.query(new FindCourseQuery(courseId), ResponseTypes.instanceOf(CourseView)).get()
+        courseView.vacanciesLeft == participantLimit
+
+        and: "no student is registered on the course"
+        courseView.students == []
     }
 
     def "Should not register user on course when student has enough credit and the course participant limit has been reached"() {

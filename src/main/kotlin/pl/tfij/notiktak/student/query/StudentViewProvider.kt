@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component
 import pl.tfij.notiktak.course.coreapi.StudentAddedToCourseEvent
 import pl.tfij.notiktak.logger
 import pl.tfij.notiktak.student.coreapi.FindStudentQuery
-import pl.tfij.notiktak.student.coreapi.StudentCharged
+import pl.tfij.notiktak.student.coreapi.StudentChargedCourseFeeEvent
 import pl.tfij.notiktak.users.coreapi.Role
 import pl.tfij.notiktak.users.coreapi.UserCreatedEvent
 
@@ -37,7 +37,7 @@ class StudentViewProvider(private val studentViewRepository: StudentViewReposito
     }
 
     @EventHandler
-    fun on(event: StudentCharged) {
+    fun on(event: StudentChargedCourseFeeEvent) {
         studentViewRepository.findByIdOrNull(event.studentId)?.let {
             it.copy(credit = it.credit - event.cost)
         }?.let {
