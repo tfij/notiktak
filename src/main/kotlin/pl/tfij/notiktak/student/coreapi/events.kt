@@ -4,4 +4,4 @@ data class StudentCreatedEvent(val studentId: String, val credit: Int)
 
 data class StudentOnCourseRegistrationStartedEvent(val studentOnCourseRegistrationId: String, val studentId: String, val courseId: String)
 
-data class StudentCharged(val studentId: String, val cost: Int)
+data class StudentChargedCourseFeeEvent(val studentId: String, val courseId: String, val cost: Int)

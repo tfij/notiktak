@@ -6,9 +6,9 @@ import org.axonframework.modelling.command.AggregateIdentifier
 import org.axonframework.modelling.command.AggregateLifecycle
 import org.axonframework.spring.stereotype.Aggregate
 import pl.tfij.notiktak.logger
-import pl.tfij.notiktak.student.coreapi.ChargeStudentCommand
+import pl.tfij.notiktak.student.coreapi.ChargeStudentCourseFeeCommand
 import pl.tfij.notiktak.student.coreapi.RegisterOnCourseCommand
-import pl.tfij.notiktak.student.coreapi.StudentCharged
+import pl.tfij.notiktak.student.coreapi.StudentChargedCourseFeeEvent
 import pl.tfij.notiktak.student.coreapi.StudentCreatedEvent
 import pl.tfij.notiktak.student.coreapi.StudentOnCourseRegistrationStartedEvent
 import java.util.*
@@ -30,13 +30,19 @@ class Student {
 
     @CommandHandler
     fun handle(command: RegisterOnCourseCommand) {
-        AggregateLifecycle.apply(StudentOnCourseRegistrationStartedEvent(UUID.randomUUID().toString(), command.studentId, command.courseId))
+        AggregateLifecycle.apply(StudentOnCourseRegistrationStartedEvent(
+            studentOnCourseRegistrationId = command.studentId + "-" + command.courseId,
+            studentId = command.studentId,
+            courseId = command.courseId
+        ))
     }
 
     @CommandHandler
-    fun handle(command: ChargeStudentCommand) {
-        //TODO verify credit
-        AggregateLifecycle.apply(StudentCharged(command.studentId, command.cost))
+    fun handle(command: ChargeStudentCourseFeeCommand) {
+        if (credit!! < command.cost) {
+            throw RuntimeException("Student $studentId has not enough credit to register on course ${command.courseId}. Require ${command.cost} but student has $credit credit.")
+        }
+        AggregateLifecycle.apply(StudentChargedCourseFeeEvent(command.studentId, command.courseId, command.cost))
     }
 
     @EventSourcingHandler
@@ -47,7 +53,7 @@ class Student {
     }
 
     @EventSourcingHandler
-    fun on(event: StudentCharged) {
+    fun on(event: StudentChargedCourseFeeEvent) {
         credit = credit!! - event.cost
     }
 
